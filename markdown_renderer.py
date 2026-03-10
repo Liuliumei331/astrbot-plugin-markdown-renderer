@@ -139,7 +139,7 @@ class MarkdownTextTransformer:
                 # 这样内部如果再嵌列表 / 表格 / 代码块，也能保留结构。
                 close = self._find_close(tokens, idx)
                 body = self._render_blocks(tokens, idx + 1, close, compact=True)
-                blocks.append(self._prefix_lines(body, "│ ", "│ "))
+                blocks.append(self._prefix_lines(body, "|| ", "|| "))
                 idx = close + 1
                 continue
             if token.type in {"fence", "code_block"}:
