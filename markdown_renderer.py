@@ -154,7 +154,7 @@ class MarkdownTextTransformer:
                 idx = close + 1
                 continue
             if token.type == "hr":
-                blocks.append("-" * 24)
+                blocks.append("-" * 48)
                 idx += 1
                 continue
             if token.type == "html_block":
@@ -305,16 +305,11 @@ class MarkdownTextTransformer:
         if self.config.mode == "plain":
             return f"{'#' * level} {text}"
         if level == 1:
-            bar = "=" * max(self._display_width(text), 3)
-            return f"{text}\n{bar}"
+            return f"● {text}"
         if level == 2:
-            bar = "-" * max(self._display_width(text), 3)
-            return f"{text}\n{bar}"
-        if level == 3:
-            # 三级标题改成更接近侧边栏的标记，和引用区分开。
-            return f"▎{text}"
-        if level == 4:
-            # 四级标题继续弱化一个层级，但不缩进正文所在列。
+            return f"◆ {text}"
+        if level in {3, 4}:
+            # 聊天场景里三级和四级都比较少见，统一降成轻量前缀样式。
             return f"▹ {text}"
         return f"{'#' * level} {text}"
 
