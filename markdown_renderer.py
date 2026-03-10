@@ -311,11 +311,11 @@ class MarkdownTextTransformer:
             bar = "-" * max(self._display_width(text), 3)
             return f"{text}\n{bar}"
         if level == 3:
-            # 三级标题改成轻量块级标记，避免和一、二级的文档风格割裂。
-            return f"• {text}"
+            # 三级标题改成更接近侧边栏的标记，和引用区分开。
+            return f"▎{text}"
         if level == 4:
-            # 四级标题继续弱化一个层级，用缩进保持从属关系。
-            return f"  ◦ {text}"
+            # 四级标题继续弱化一个层级，但不缩进正文所在列。
+            return f"▹ {text}"
         return f"{'#' * level} {text}"
 
     def _render_code_block(self, token: Token) -> str:

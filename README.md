@@ -35,8 +35,8 @@
 - 删除线 `~~text~~` -> `已删除：text`
 - 一级标题 `# title` -> `title` + 下方 `====`
 - 二级标题 `## title` -> `title` + 下方 `----`
-- 三级标题 `### title` -> `• title`
-- 四级标题 `#### title` -> `  ◦ title`
+- 三级标题 `### title` -> `▎title`
+- 四级标题 `#### title` -> `▹ title`
 - 引用 `> quote` -> `❝ quote`
 
 ## 实机验证
