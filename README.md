@@ -33,6 +33,7 @@
 - 斜体 `*text*` -> `「text」`
 - 粗体 `**text**` -> `【text】`
 - 删除线 `~~text~~` -> `已删除：text`
+- 行内代码 `` `code` `` -> `<code>`
 - 一级标题 `# title` -> `title` + 下方 `====`
 - 二级标题 `## title` -> `title` + 下方 `----`
 - 三级标题 `### title` -> `▎title`

@@ -362,7 +362,8 @@ class MarkdownTextTransformer:
             if token.type == "text":
                 parts.append(token.content)
             elif token.type == "code_inline":
-                parts.append(token.content)
+                # 行内代码不能直接裸输出，否则和正文混在一起时语义会丢。
+                parts.append(f"<{token.content}>")
             elif token.type in {"em_open", "strong_open", "s_open"}:
                 close = self._find_close(tokens, idx)
                 content = self._render_inline(tokens[idx + 1 : close]).strip()
