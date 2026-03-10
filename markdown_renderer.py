@@ -106,7 +106,7 @@ class MarkdownTextTransformer:
         block 层只负责“整体结构”，行内强调、链接、图片则交给 inline 层。
         """
 
-        blocks: list[str] = []
+        blocks: list[tuple[str, str]] = []
         idx = start
         while idx < end:
             token = tokens[idx]
@@ -115,14 +115,14 @@ class MarkdownTextTransformer:
                 # 所以先找闭合位置，再把中间那段交给 inline 渲染。
                 close = self._find_close(tokens, idx)
                 content = self._render_inline_range(tokens, idx + 1, close)
-                blocks.append(self._render_heading(content, token.tag))
+                blocks.append(("heading", self._render_heading(content, token.tag)))
                 idx = close + 1
                 continue
             if token.type == "paragraph_open":
                 close = self._find_close(tokens, idx)
                 content = self._render_inline_range(tokens, idx + 1, close)
                 if content.strip():
-                    blocks.append(content.strip())
+                    blocks.append(("paragraph", content.strip()))
                 idx = close + 1
                 continue
             if token.type in {"bullet_list_open", "ordered_list_open"}:
@@ -131,7 +131,7 @@ class MarkdownTextTransformer:
                 ordered = token.type == "ordered_list_open"
                 start_num = int(self._attr(token, "start") or "1")
                 blocks.append(
-                    self._render_list(tokens, idx + 1, close, ordered, start_num)
+                    ("list", self._render_list(tokens, idx + 1, close, ordered, start_num))
                 )
                 idx = close + 1
                 continue
@@ -140,22 +140,22 @@ class MarkdownTextTransformer:
                 # 这样内部如果再嵌列表 / 表格 / 代码块，也能保留结构。
                 close = self._find_close(tokens, idx)
                 body = self._render_blocks(tokens, idx + 1, close, compact=True)
-                blocks.append(self._prefix_lines(body, "❝ ", "❝ "))
+                blocks.append(("blockquote", self._prefix_lines(body, "❝ ", "❝ ")))
                 idx = close + 1
                 continue
             if token.type in {"fence", "code_block"}:
-                blocks.append(self._render_code_block(token))
+                blocks.append(("code", self._render_code_block(token)))
                 idx += 1
                 continue
             if token.type == "table_open":
                 # 表格必须走专门逻辑，不能把内部 token 直接拼文本，
                 # 否则最终只会剩下一堆单元格内容而丢掉列结构。
                 close = self._find_close(tokens, idx)
-                blocks.append(self._render_table(tokens, idx + 1, close))
+                blocks.append(("table", self._render_table(tokens, idx + 1, close)))
                 idx = close + 1
                 continue
             if token.type == "hr":
-                blocks.append("-" * 48)
+                blocks.append(("hr", "-" * 48))
                 idx += 1
                 continue
             if token.type == "html_block":
@@ -165,7 +165,7 @@ class MarkdownTextTransformer:
                     else self._strip_html(token.content)
                 )
                 if html_text.strip():
-                    blocks.append(html_text.strip())
+                    blocks.append(("html", html_text.strip()))
                 idx += 1
                 continue
             if token.type == "inline":
@@ -173,10 +173,21 @@ class MarkdownTextTransformer:
                 # 这里兜底渲染，避免文本被吞掉。
                 content = self._render_inline(token.children or [])
                 if content.strip():
-                    blocks.append(content.strip())
+                    blocks.append(("paragraph", content.strip()))
             idx += 1
-        separator = "\n" if compact else "\n\n"
-        return separator.join(block for block in blocks if block.strip())
+        if compact:
+            return "\n".join(block for _, block in blocks if block.strip())
+
+        rendered: list[str] = []
+        prev_kind: Optional[str] = None
+        for kind, block in blocks:
+            if not block.strip():
+                continue
+            if rendered:
+                rendered.append(self._block_separator(prev_kind, kind))
+            rendered.append(block)
+            prev_kind = kind
+        return "".join(rendered)
 
     def _render_list(
         self,
@@ -492,6 +503,20 @@ class MarkdownTextTransformer:
             prefix = first_prefix if idx == 0 else rest_prefix
             prefixed.append(prefix + line if line else prefix.rstrip())
         return "\n".join(prefixed)
+
+    def _block_separator(self, prev_kind: Optional[str], curr_kind: str) -> str:
+        # 聊天场景比文档排版更适合紧凑布局：
+        # 1. 代码块 / 表格 / 分隔线仍保留空一行，避免和正文粘连。
+        # 2. 标题前留空一行，标题后只换一行。
+        # 3. 引用前后也只换一行，避免在聊天窗口里显得过于松散。
+        # 4. 其余块默认只换一行。
+        if prev_kind in {"code", "table", "hr"} or curr_kind in {"code", "table", "hr"}:
+            return "\n\n"
+        if curr_kind == "heading":
+            return "\n\n"
+        if prev_kind == "blockquote" or curr_kind == "blockquote":
+            return "\n"
+        return "\n"
 
     def _normalize_output(self, text: str) -> str:
         # 最后收尾：去掉行尾空格，压缩过多空行，避免文本风格忽胖忽瘦。
