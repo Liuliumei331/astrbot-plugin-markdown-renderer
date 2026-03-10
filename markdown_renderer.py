@@ -139,7 +139,7 @@ class MarkdownTextTransformer:
                 # 这样内部如果再嵌列表 / 表格 / 代码块，也能保留结构。
                 close = self._find_close(tokens, idx)
                 body = self._render_blocks(tokens, idx + 1, close, compact=True)
-                blocks.append(self._prefix_lines(body, "> ", "> "))
+                blocks.append(self._prefix_lines(body, "│ ", "│ "))
                 idx = close + 1
                 continue
             if token.type in {"fence", "code_block"}:
@@ -306,10 +306,16 @@ class MarkdownTextTransformer:
             return f"{'#' * level} {text}"
         if level == 1:
             bar = "=" * max(self._display_width(text), 3)
-            return f"{bar}\n{text}\n{bar}"
+            return f"{text}\n{bar}"
         if level == 2:
             bar = "-" * max(self._display_width(text), 3)
             return f"{text}\n{bar}"
+        if level == 3:
+            # 三级标题改成轻量块级标记，避免和一、二级的文档风格割裂。
+            return f"• {text}"
+        if level == 4:
+            # 四级标题继续弱化一个层级，用缩进保持从属关系。
+            return f"  ◦ {text}"
         return f"{'#' * level} {text}"
 
     def _render_code_block(self, token: Token) -> str:
