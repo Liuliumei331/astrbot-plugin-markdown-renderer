@@ -1,19 +1,10 @@
 # markdown_renderer
 
-`markdown_renderer` 是一个 AstrBot 插件，用于把 LLM 输出的 Markdown 渲染成更适合聊天平台展示的纯文本或 ASCII 风格文本，而不是简单删除语法。
+`markdown_renderer` 是一个 AstrBot 插件，用于将 LLM 输出中的 Markdown 渲染为更适合聊天平台展示的文本内容。
 
-仓库地址：
+仓库地址：<https://github.com/Liuliumei331/astrbot-plugin-markdown-renderer>
 
-- https://github.com/Liuliumei331/astrbot-plugin-markdown-renderer
-
-## 设计目标
-
-- 不靠正则硬删全部 Markdown
-- 先解析 Markdown 结构，再渲染为文本
-- 支持两种输出模式：`plain` 和 `ascii`
-- 对表格做专门处理，避免只剩下杂乱的 `|` 和 `---`
-
-## 当前已实现
+## 特性
 
 - 标题
 - 段落
@@ -28,7 +19,14 @@
 - 行内强调 / 加粗 / 删除线的文本语义保留
 - 基础 HTML 标签剥离
 
-当前默认语义样式：
+## 渲染风格
+
+默认提供两种模式：
+
+- `ascii`：保留较强的结构感，适合表格、标题、代码块和引用
+- `plain`：输出更轻量的纯文本结果
+
+当前默认样式：
 
 - 斜体 `*text*` -> `「text」`
 - 粗体 `**text**` -> `【text】`
@@ -40,23 +38,9 @@
 - 四级标题 `#### title` -> `▹ title`
 - 引用 `> quote` -> `❝ quote`
 
-## 实机验证
-
-当前版本已经在真实 AstrBot 对话链路里验证通过，以下能力已确认可用：
-
-- 标题
-- 斜体 / 粗体 / 删除线
-- 链接
-- 表格
-- 任务列表
-- 有序列表 / 无序列表 / 嵌套列表
-- 引用
-- 代码块
-- 图片语法
-
 ## 输出示例
 
-输入：
+输入 Markdown：
 
 ```md
 # 今日结果
@@ -99,34 +83,34 @@
 2. 安装依赖 `markdown-it-py` 与 `wcwidth`
 3. 重载或重启 AstrBot
 
-如果你用 Docker 部署 AstrBot，依赖需要安装到 AstrBot 容器的 Python 环境里，而不是仅安装到本地开发 `.venv`。
+Docker 部署时，依赖需要安装到 AstrBot 容器内的 Python 环境，而不是本地开发 `.venv`。
+
+## 运行说明
+
+- 插件默认只在检测到 Markdown 特征时处理文本
+- 插件会直接改写 `LLMResponse.completion_text`
+- 对于普通纯文本回复，通常不会触发重渲染
 
 ## 兼容性说明
 
-如果你同时启用了 `meme_manager`，请注意它的备用标记功能可能会误处理 Markdown 中的 `[]` 和 `()`，从而影响：
+如果同时启用了 `meme_manager`，其备用标记功能可能会误处理 Markdown 中的 `[]` 和 `()`，从而影响：
 
 - 链接 `[text](url)`
 - 任务列表 `- [x] item`
 - 图片 `![alt](url)`
 
-实机测试中，关闭 `meme_manager` 的 `remove_invalid_alternative_markup` 后可以正常共存。
+建议关闭 `meme_manager` 的 `remove_invalid_alternative_markup`。
 
 ## 本地开发环境
 
-建议用 `uv` 单独建开发环境，但要注意一件事：
-
-- 这个 `.venv` 只用于本地开发、调试和测试
-- 插件真正上线时，依赖仍然需要安装到 AstrBot 实际运行的 Python 环境里
-- 最稳的做法是让本地 `.venv` 使用和 AstrBot 运行时相同的大版本 Python
-
-常用命令：
+建议使用 `uv` 管理本地开发环境：
 
 ```bash
 python3 -m uv venv .venv --python /path/to/astrbot/python
 python3 -m uv sync
 ```
 
-如果你暂时拿不到 AstrBot 的 Python 路径，也可以先用当前本地解释器创建 `.venv`，后续再重建。
+本地 `.venv` 仅用于开发和测试。部署时仍需将依赖安装到 AstrBot 实际运行的 Python 环境中。
 
 ## 配置项
 
@@ -140,9 +124,19 @@ python3 -m uv sync
 - `detect_markdown_only`: 仅在检测到 Markdown 特征时处理
 - `debug_log`: 输出调试日志
 
-## 后续建议
+## 已验证能力
 
-当前版本已经比“只删 Markdown 标记”的方案稳定，但如果你要继续增强，下一步最值得补的是：
+- 标题
+- 斜体 / 粗体 / 删除线
+- 行内代码 / 代码块
+- 链接
+- 表格
+- 任务列表
+- 有序列表 / 无序列表 / 嵌套列表
+- 引用
+- 图片语法
+
+## 后续计划
 
 - 更复杂的嵌套列表
 - HTML 块的结构化降级
@@ -151,4 +145,4 @@ python3 -m uv sync
 
 ## License
 
-当前仓库尚未单独添加开源许可证文件。如需公开发布，建议补充 `LICENSE`。
+MIT
