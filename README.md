@@ -1,6 +1,10 @@
-# AstrBot 插件：Markdown Text Renderer
+# markdown_renderer
 
-把 LLM 输出的 Markdown 渲染为适合聊天平台展示的文本，而不是简单删除语法。
+`markdown_renderer` 是一个 AstrBot 插件，用于把 LLM 输出的 Markdown 渲染成更适合聊天平台展示的纯文本或 ASCII 风格文本，而不是简单删除语法。
+
+仓库地址：
+
+- https://github.com/Liuliumei331/astrbot-plugin-markdown-renderer
 
 ## 设计目标
 
@@ -29,6 +33,20 @@
 - 斜体 `*text*` -> `「text」`
 - 粗体 `**text**` -> `【text】`
 - 删除线 `~~text~~` -> `已删除：text`
+
+## 实机验证
+
+当前版本已经在真实 AstrBot 对话链路里验证通过，以下能力已确认可用：
+
+- 标题
+- 斜体 / 粗体 / 删除线
+- 链接
+- 表格
+- 任务列表
+- 有序列表 / 无序列表 / 嵌套列表
+- 引用
+- 代码块
+- 图片语法
 
 ## 输出示例
 
@@ -72,6 +90,18 @@
 2. 安装依赖 `markdown-it-py` 与 `wcwidth`
 3. 重载或重启 AstrBot
 
+如果你用 Docker 部署 AstrBot，依赖需要安装到 AstrBot 容器的 Python 环境里，而不是仅安装到本地开发 `.venv`。
+
+## 兼容性说明
+
+如果你同时启用了 `meme_manager`，请注意它的备用标记功能可能会误处理 Markdown 中的 `[]` 和 `()`，从而影响：
+
+- 链接 `[text](url)`
+- 任务列表 `- [x] item`
+- 图片 `![alt](url)`
+
+实机测试中，关闭 `meme_manager` 的 `remove_invalid_alternative_markup` 后可以正常共存。
+
 ## 本地开发环境
 
 建议用 `uv` 单独建开发环境，但要注意一件事：
@@ -109,3 +139,7 @@ python3 -m uv sync
 - HTML 块的结构化降级
 - 数学公式的保留策略
 - 超宽表格的自动换行或截断
+
+## License
+
+当前仓库尚未单独添加开源许可证文件。如需公开发布，建议补充 `LICENSE`。
