@@ -412,7 +412,7 @@ class MarkdownTextTransformer:
         if token_type == "em_open":
             return f"「{content}」"
         if token_type == "strong_open":
-            return f"【{content}】"
+            return f"『{content}』"
         if token_type == "s_open":
             return f"已删除：{content}"
         return content
