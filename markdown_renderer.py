@@ -38,6 +38,7 @@ HTML_TAG_RE = re.compile(r"<[^>]+>")
 MARKDOWN_HINT_RE = re.compile(
     r"(?m)(^#{1,6}\s)|(^>\s)|(^\s*[-*+]\s)|(^\s*\d+\.\s)|(```)|(\[[^\]]+\]\([^)]+\))|(\|.+\|)"
 )
+ASCII_TABLE_MAX_WIDTH = 45
 
 
 @dataclass
@@ -284,6 +285,12 @@ class MarkdownTextTransformer:
             max(self._display_width(cell) for cell in column)
             for column in zip(*normalized_rows)
         ]
+        # 手机端聊天界面宽度有限，超宽 ASCII 表格一旦自动换行就会彻底错位。
+        # 这里按固定阈值 45 提前降级成卡片式字段视图。
+        total_width = 1 + sum(width + 3 for width in widths)
+        if total_width > ASCII_TABLE_MAX_WIDTH:
+            return self._render_card_table(normalized_rows, header_count)
+
         separator = "+" + "+".join("-" * (width + 2) for width in widths) + "+"
 
         lines = [separator]
@@ -295,6 +302,31 @@ class MarkdownTextTransformer:
         if header_count == 0 and lines[-1] != separator:
             lines.append(separator)
         return "\n".join(lines)
+
+    def _render_card_table(self, rows: list[list[str]], header_count: int) -> str:
+        # 超宽表格在手机端更适合字段视图：一行数据一张卡片，避免自动换行后错位。
+        header = rows[0] if header_count else []
+        body = rows[header_count:] if header_count else rows
+        if not body:
+            return ""
+
+        cards: list[str] = []
+        for row_index, row in enumerate(body, start=1):
+            lines = [f"[{row_index}]"]
+            for col_index, cell in enumerate(row, start=1):
+                value = cell.strip()
+                if not value:
+                    continue
+                key = (
+                    header[col_index - 1].strip()
+                    if header and col_index - 1 < len(header) and header[col_index - 1].strip()
+                    else f"列{col_index}"
+                )
+                lines.append(f"{key}：{value}")
+            if len(lines) == 1:
+                lines.append("（空）")
+            cards.append("\n".join(lines))
+        return "\n\n".join(cards)
 
     def _render_heading(self, text: str, tag: str) -> str:
         # plain 模式尽量简洁，ascii 模式适当强化层级感。
