@@ -37,7 +37,7 @@
 - 二级标题 `## title` -> `title` + 下方 `----`
 - 三级标题 `### title` -> `• title`
 - 四级标题 `#### title` -> `  ◦ title`
-- 引用 `> quote` -> `|| quote`
+- 引用 `> quote` -> `❝ quote`
 
 ## 实机验证
 
@@ -87,7 +87,7 @@
 [x] 完成
 [ ] 待办
 
-|| 需要继续跟进
+❝ 需要继续跟进
 
 访问 官网 (https://example.com)
 ```
