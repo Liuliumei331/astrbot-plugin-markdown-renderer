@@ -44,7 +44,7 @@ MarkdownTextTransformer = _load_transformer_class()
     "Codex",
     "将 LLM 输出的 Markdown 渲染为纯文本或 ASCII 风格文本",
     "0.1.3",
-    "https://github.com/example/astrbot_plugin_markdown_text_renderer",
+    "https://github.com/Liuliumei331/astrbot-plugin-markdown-renderer",
 )
 class MarkdownTextRendererPlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
