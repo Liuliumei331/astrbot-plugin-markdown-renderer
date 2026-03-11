@@ -44,7 +44,7 @@ TARGET_PLATFORM_NAME = "aiocqhttp"
     "astrbot_plugin_markdown_text_renderer",
     "Liuliumei331",
     "将 LLM 输出的 Markdown 渲染为纯文本或 ASCII 风格文本",
-    "0.1.4",
+    "0.1.5",
     "https://github.com/Liuliumei331/astrbot-plugin-markdown-renderer",
 )
 class MarkdownTextRendererPlugin(Star):

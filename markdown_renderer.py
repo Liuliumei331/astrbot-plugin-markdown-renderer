@@ -39,6 +39,12 @@ MARKDOWN_HINT_RE = re.compile(
     r"(?m)(^#{1,6}\s)|(^>\s)|(^\s*[-*+]\s)|(^\s*\d+\.\s)|(```)|(\[[^\]]+\]\([^)]+\))|(\|.+\|)"
 )
 ASCII_TABLE_MAX_WIDTH = 45
+HEADING_PREFIXES = {
+    1: "📌",
+    2: "✏️",
+    3: "📚",
+    4: "🔖",
+}
 
 
 @dataclass
@@ -340,21 +346,15 @@ class MarkdownTextTransformer:
         return "\n\n".join(cards)
 
     def _render_heading(self, text: str, tag: str) -> str:
-        # plain 模式尽量简洁，ascii 模式适当强化层级感。
+        # 标题改成 Telegramify 风格的轻量前缀样式。
+        # 这里只保留前缀，不再额外做加粗/下划线等平台样式，
+        # 这样在纯文本平台和 QQ 聊天界面里更稳定。
         level = int(tag[1]) if tag.startswith("h") else 1
         text = text.strip()
         if not text:
             return ""
-        if self.config.mode == "plain":
-            return f"{'#' * level} {text}"
-        if level == 1:
-            return f"● {text}"
-        if level == 2:
-            return f"◆ {text}"
-        if level in {3, 4}:
-            # 聊天场景里三级和四级都比较少见，统一降成轻量前缀样式。
-            return f"▹ {text}"
-        return f"{'#' * level} {text}"
+        prefix = HEADING_PREFIXES.get(level, "")
+        return f"{prefix} {text}".strip()
 
     def _render_code_block(self, token: Token) -> str:
         # fenced code block 的 info 字段里通常包含语言名，例如 python / json。

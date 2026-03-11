@@ -32,10 +32,10 @@
 - 粗体 `**text**` -> `『text』`
 - 删除线 `~~text~~` -> `已删除：text`
 - 行内代码 `` `code` `` -> `<code>`
-- 一级标题 `# title` -> `● title`
-- 二级标题 `## title` -> `◆ title`
-- 三级标题 `### title` -> `▹ title`
-- 四级标题 `#### title` -> `▹ title`
+- 一级标题 `# title` -> `📌 title`
+- 二级标题 `## title` -> `✏️ title`
+- 三级标题 `### title` -> `📚 title`
+- 四级标题 `#### title` -> `🔖 title`
 - 引用 `> quote` -> `❝ quote`
 
 表格规则：
@@ -65,7 +65,7 @@
 `ascii` 模式输出：
 
 ```text
-● 今日结果
+📌 今日结果
 
 +------+------+
 | 姓名 | 分数 |
