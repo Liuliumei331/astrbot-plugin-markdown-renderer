@@ -37,13 +37,14 @@ def _load_transformer_class():
 
 
 MarkdownTextTransformer = _load_transformer_class()
+TARGET_PLATFORM_NAME = "aiocqhttp"
 
 
 @register(
     "astrbot_plugin_markdown_text_renderer",
     "Liuliumei331",
     "将 LLM 输出的 Markdown 渲染为纯文本或 ASCII 风格文本",
-    "0.1.3",
+    "0.1.4",
     "https://github.com/Liuliumei331/astrbot-plugin-markdown-renderer",
 )
 class MarkdownTextRendererPlugin(Star):
@@ -64,6 +65,14 @@ class MarkdownTextRendererPlugin(Star):
         # 只处理真实的 LLM 文本响应。空响应和非文本响应直接跳过。
         if not resp or not resp.completion_text:
             return
+        # 可选的平台限制：
+        # 开启后只在 aiocqhttp 平台渲染，避免影响其他适配器。
+        if self.config.get("aiocqhttp_only", False):
+            platform_name = ""
+            if hasattr(event, "get_platform_name"):
+                platform_name = str(event.get_platform_name() or "")
+            if platform_name != TARGET_PLATFORM_NAME:
+                return
 
         original_text = resp.completion_text
         # 检测开关默认开启：

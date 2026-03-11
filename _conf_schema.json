@@ -41,6 +41,11 @@
     "type": "bool",
     "default": true
   },
+  "aiocqhttp_only": {
+    "description": "仅在 aiocqhttp 平台启用渲染",
+    "type": "bool",
+    "default": false
+  },
   "debug_log": {
     "description": "输出调试日志",
     "type": "bool",
