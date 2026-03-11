@@ -1,1 +1,7 @@
-{}
+{
+  "debug_log": {
+    "description": "输出调试日志",
+    "type": "bool",
+    "default": false
+  }
+}
