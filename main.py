@@ -44,7 +44,7 @@ TARGET_PLATFORM_NAME = "aiocqhttp"
     "astrbot_plugin_markdown_text_renderer",
     "Liuliumei331",
     "将 LLM 输出的 Markdown 渲染为纯文本或 ASCII 风格文本",
-    "0.1.5",
+    "0.1.6",
     "https://github.com/Liuliumei331/astrbot-plugin-markdown-renderer",
 )
 class MarkdownTextRendererPlugin(Star):
@@ -59,28 +59,22 @@ class MarkdownTextRendererPlugin(Star):
     async def on_llm_response(
         self, event: AstrMessageEvent, resp: LLMResponse, *args
     ):
-        # 插件级总开关。关闭后应尽早返回，避免无意义解析。
-        if not self.config.get("enabled", True):
-            return
         # 只处理真实的 LLM 文本响应。空响应和非文本响应直接跳过。
         if not resp or not resp.completion_text:
             return
-        # 可选的平台限制：
-        # 开启后只在 aiocqhttp 平台渲染，避免影响其他适配器。
-        if self.config.get("aiocqhttp_only", False):
-            platform_name = ""
-            if hasattr(event, "get_platform_name"):
-                platform_name = str(event.get_platform_name() or "")
-            if platform_name != TARGET_PLATFORM_NAME:
-                return
+        # 这个插件默认只服务 aiocqhttp。
+        # Telegram 等平台本身已经有各自的 Markdown 发送链路，不需要再经过这里重排。
+        platform_name = ""
+        if hasattr(event, "get_platform_name"):
+            platform_name = str(event.get_platform_name() or "")
+        if platform_name != TARGET_PLATFORM_NAME:
+            return
 
         original_text = resp.completion_text
-        # 检测开关默认开启：
         # 不是每条 LLM 输出都含 Markdown，先做一次轻量级特征判断，
         # 可以减少不必要的 parse / render 开销，也避免纯文本被“重排”。
-        if self.config.get("detect_markdown_only", True):
-            if not self.transformer.looks_like_markdown(original_text):
-                return
+        if not self.transformer.looks_like_markdown(original_text):
+            return
 
         rendered_text = self.transformer.render(original_text)
         # 如果渲染结果为空，或者和原文完全一致，就不要回写，
@@ -94,8 +88,7 @@ class MarkdownTextRendererPlugin(Star):
 
         if self.config.get("debug_log", False):
             logger.info(
-                "[Markdown Text Renderer] mode=%s before=%r after=%r",
-                self.config.get("mode", "ascii"),
+                "[Markdown Text Renderer] mode=ascii before=%r after=%r",
                 original_text[:80],
                 rendered_text[:80],
             )

@@ -1,6 +1,6 @@
 name: markdown_renderer
 desc: 将 LLM 输出中的 Markdown 转换为纯文本或 ASCII 风格文本
 help: 安装后自动拦截 LLM 回复并执行 Markdown 到文本渲染
-version: v0.1.5
+version: v0.1.6
 author: Liuliumei331
 repo: https://github.com/Liuliumei331/astrbot-plugin-markdown-renderer

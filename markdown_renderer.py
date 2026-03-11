@@ -55,35 +55,20 @@ class RenderConfig:
     带进整个渲染流程，后面做单元测试也更容易。
     """
 
-    mode: str = "ascii"
     keep_links: bool = True
     strip_html: bool = True
-    detect_markdown_only: bool = True
-    table_mode: str = "ascii"
     keep_code_language: bool = True
     preserve_inline_semantics: bool = True
 
 
 class MarkdownTextTransformer:
     def __init__(self, config: dict):
-        # 这里先把 mode 做合法值收敛，避免出现拼写错误时渲染流程进入未知分支。
-        mode = str(config.get("mode", "ascii")).lower()
-        table_mode = str(config.get("table_mode", "ascii")).lower()
-        if mode not in {"ascii", "plain"}:
-            mode = "ascii"
-        if table_mode not in {"ascii", "plain"}:
-            table_mode = "ascii"
-
         self.config = RenderConfig(
-            mode=mode,
-            keep_links=bool(config.get("keep_links", True)),
-            strip_html=bool(config.get("strip_html", True)),
-            detect_markdown_only=bool(config.get("detect_markdown_only", True)),
-            table_mode=table_mode,
-            keep_code_language=bool(config.get("keep_code_language", True)),
-            preserve_inline_semantics=bool(
-                config.get("preserve_inline_semantics", True)
-            ),
+            # 当前版本固定使用统一渲染风格，不再从 WebUI 暴露细粒度选项。
+            keep_links=True,
+            strip_html=True,
+            keep_code_language=True,
+            preserve_inline_semantics=True,
         )
 
         # 用 CommonMark 作为基底，再手动打开我们 v1 真正需要的扩展。
@@ -259,8 +244,6 @@ class MarkdownTextTransformer:
         if not rows:
             return ""
 
-        if self.config.table_mode == "plain":
-            return self._render_plain_table(rows, header_count)
         return self._render_ascii_table(rows, header_count)
 
     def _parse_table_row(self, tokens: list[Token], start: int, end: int) -> list[str]:
@@ -276,21 +259,6 @@ class MarkdownTextTransformer:
             cells.append(self._render_inline_range(tokens, idx + 1, close).strip())
             idx = close + 1
         return cells
-
-    def _render_plain_table(self, rows: list[list[str]], header_count: int) -> str:
-        # plain 模式不追求“像表格”，只追求可复制和轻量阅读。
-        # 用 tab 分列，适合终端、日志和二次处理。
-        lines: list[str] = []
-        header = rows[:header_count] if header_count else []
-        body = rows[header_count:] if header_count else rows
-
-        if header:
-            lines.append("\t".join(header[0]))
-            lines.append("\t".join("-" for _ in header[0]))
-
-        for row in body:
-            lines.append("\t".join(row))
-        return "\n".join(lines)
 
     def _render_ascii_table(self, rows: list[list[str]], header_count: int) -> str:
         # ASCII 表格需要两步：
@@ -364,12 +332,6 @@ class MarkdownTextTransformer:
             if getattr(token, "info", "")
             else ""
         )
-        if self.config.mode == "plain":
-            lines = code.splitlines() or [""]
-            if self.config.keep_code_language and info:
-                lines.insert(0, f"[code:{info}]")
-            return "\n".join(f"    {line}" for line in lines)
-
         label = "[code]"
         if self.config.keep_code_language and info:
             label = f"[code:{info}]"
